@@ -25,26 +25,18 @@ import (
 
 func init() {
 
-	SpringBoot.RegisterNameBeanFn("web-container", NewWebContainer).
-		ConditionOnOptionalPropertyValue("web.server.enable", true)
+	SpringBoot.RegisterNameBeanFn("web-container", func(config StarterWeb.WebServerConfig) SpringWeb.WebContainer {
+		return SpringEcho.NewContainer(SpringWeb.ContainerConfig{
+			Port: config.Port,
+		})
+	}).ConditionOnOptionalPropertyValue("web.server.enable", true)
 
-	SpringBoot.RegisterNameBeanFn("ssl-web-container", NewSSLWebContainer).
-		ConditionOnPropertyValue("web.server.ssl.enable", true)
-}
-
-// NewWebContainer 创建 http 服务
-func NewWebContainer(config StarterWeb.WebServerConfig) SpringWeb.WebContainer {
-	return SpringEcho.NewContainer(SpringWeb.ContainerConfig{
-		Port: config.Port,
-	})
-}
-
-// NewSSLWebContainer 创建 https 服务
-func NewSSLWebContainer(config StarterWeb.WebServerConfig) SpringWeb.WebContainer {
-	return SpringEcho.NewContainer(SpringWeb.ContainerConfig{
-		EnableSSL: true,
-		Port:      config.SSLPort,
-		KeyFile:   config.SSLKey,
-		CertFile:  config.SSLCert,
-	})
+	SpringBoot.RegisterNameBeanFn("ssl-web-container", func(config StarterWeb.WebServerConfig) SpringWeb.WebContainer {
+		return SpringEcho.NewContainer(SpringWeb.ContainerConfig{
+			EnableSSL: true,
+			Port:      config.SSLPort,
+			KeyFile:   config.SSLKey,
+			CertFile:  config.SSLCert,
+		})
+	}).ConditionOnPropertyValue("web.server.ssl.enable", true)
 }
